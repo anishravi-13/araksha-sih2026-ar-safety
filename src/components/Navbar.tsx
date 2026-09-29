@@ -1,6 +1,6 @@
 import React from 'react';
 import { 
-  ShieldCheck, 
+  Shield, 
   Wifi, 
   WifiOff, 
   RefreshCw, 
@@ -48,150 +48,146 @@ export const Navbar: React.FC<NavbarProps> = ({
   const t = translations[language];
 
   return (
-    <header className="sticky top-0 z-50 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 text-white shadow-xl">
+    <header className="sticky top-0 z-50 bg-[#090d16]/95 backdrop-blur-md border-b border-slate-800/80 text-slate-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Logo & Platform Info */}
+          
+          {/* Logo & Enterprise Brand */}
           <div 
             onClick={() => setActiveTab('trainee')} 
             className="flex items-center space-x-3 cursor-pointer select-none"
           >
-            <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 via-orange-600 to-emerald-500 shadow-lg shadow-orange-500/20">
-              <ShieldCheck className="w-6 h-6 text-white" />
-              <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-slate-900" />
+            <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-amber-500 text-slate-950 font-black shadow-sm">
+              <Shield className="w-5 h-5 fill-slate-950" />
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <span className="font-extrabold text-xl tracking-tight bg-gradient-to-r from-amber-400 via-orange-300 to-emerald-400 bg-clip-text text-transparent">
+                <span className="font-extrabold text-lg tracking-tight text-white font-mono">
                   {t.appName}
                 </span>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                  {t.platformBadge}
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
+                  v2.4
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400 hidden sm:block truncate max-w-xs">
+              <p className="text-[11px] text-slate-400 hidden sm:block">
                 Industrial Safety &amp; Competency Platform
               </p>
             </div>
           </div>
 
-          {/* Main Navigation Tabs */}
-          <nav className="hidden md:flex items-center space-x-1.5 bg-slate-800/80 p-1.5 rounded-2xl border border-slate-700/60 shadow-inner">
+          {/* Desktop Navigation Tabs */}
+          <nav className="hidden md:flex items-center space-x-1 bg-slate-900/90 p-1 rounded-xl border border-slate-800">
             <button
               onClick={() => setActiveTab('trainee')}
-              className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
                 activeTab === 'trainee'
-                  ? 'bg-gradient-to-r from-orange-500 to-amber-600 text-white shadow-md'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-750'
+                  ? 'bg-amber-500 text-slate-950 shadow-sm'
+                  : 'text-slate-300 hover:text-white hover:bg-slate-800'
               }`}
             >
-              <Play className="w-4 h-4 text-amber-300" />
+              <Play className="w-3.5 h-3.5" />
               <span>{t.traineeMode}</span>
             </button>
 
             <button
               onClick={() => setActiveTab('supervisor')}
-              className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
                 activeTab === 'supervisor'
-                  ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-md'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-750'
+                  ? 'bg-slate-700 text-white shadow-sm'
+                  : 'text-slate-300 hover:text-white hover:bg-slate-800'
               }`}
             >
-              <Users className="w-4 h-4 text-cyan-300" />
+              <Users className="w-3.5 h-3.5" />
               <span>{t.supervisorConsole}</span>
             </button>
 
             <button
               onClick={() => setActiveTab('dgms')}
-              className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
                 activeTab === 'dgms'
-                  ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-750'
+                  ? 'bg-slate-700 text-white shadow-sm'
+                  : 'text-slate-300 hover:text-white hover:bg-slate-800'
               }`}
             >
-              <FileText className="w-4 h-4 text-emerald-300" />
+              <FileText className="w-3.5 h-3.5" />
               <span>{t.dgmsAudit}</span>
             </button>
 
             <button
               onClick={() => setActiveTab('validator')}
-              className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
                 activeTab === 'validator'
-                  ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-750'
+                  ? 'bg-slate-700 text-white shadow-sm'
+                  : 'text-slate-300 hover:text-white hover:bg-slate-800'
               }`}
             >
-              <FileCheck className="w-4 h-4 text-purple-300" />
+              <FileCheck className="w-3.5 h-3.5" />
               <span>{t.certificateValidator}</span>
             </button>
           </nav>
 
-          {/* System Controls & Language Switcher */}
-          <div className="flex items-center space-x-2 sm:space-x-3">
+          {/* Secondary Controls */}
+          <div className="flex items-center space-x-2 sm:space-x-2.5">
             {/* Language Selector */}
-            <div className="relative">
-              <select
-                aria-label="Language selection"
-                value={language}
-                onChange={(e) => setLanguage(e.target.value as Language)}
-                className="bg-slate-800 text-xs text-amber-300 border border-slate-700 rounded-xl px-2.5 py-1.5 font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer shadow-sm"
-              >
-                <option value="en">English (EN)</option>
-                <option value="hi">हिन्दी (Hindi)</option>
-                <option value="sat">ᱥᱟᱱᱛᱟᱲᱤ (Santali)</option>
-              </select>
-            </div>
+            <select
+              aria-label="Language"
+              value={language}
+              onChange={(e) => setLanguage(e.target.value as Language)}
+              className="bg-slate-900 text-xs text-slate-200 border border-slate-700 rounded-lg px-2.5 py-1.5 font-medium focus:outline-none focus:border-amber-500 cursor-pointer"
+            >
+              <option value="en">EN (English)</option>
+              <option value="hi">HI (हिन्दी)</option>
+              <option value="sat">SAT (ᱥᱟᱱᱛᱟᱲᱤ)</option>
+            </select>
 
-            {/* Sound Toggle */}
+            {/* Audio Voice Toggle */}
             <button
               onClick={() => setSoundEnabled(!soundEnabled)}
-              title={soundEnabled ? "Mute Voice Guidance & Sound Effects" : "Enable Voice Guidance & Sound"}
-              className={`p-2 rounded-xl border text-xs transition-colors cursor-pointer ${
+              title={soundEnabled ? "Mute Voice Guidance" : "Enable Voice Guidance"}
+              className={`p-1.5 rounded-lg border text-xs transition-colors cursor-pointer ${
                 soundEnabled 
-                  ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400' 
-                  : 'bg-slate-800 border-slate-700 text-slate-400'
+                  ? 'bg-emerald-950/60 border-emerald-500/40 text-emerald-400' 
+                  : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-300'
               }`}
             >
               {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
             </button>
 
-            {/* Offline Mode Switcher */}
+            {/* Offline Mode Indicator */}
             <button
               onClick={() => setIsOffline(!isOffline)}
-              title={isOffline ? "Underground Mode Active (Zero Signal)" : "Cloud Surface Connected"}
-              className={`hidden sm:flex items-center space-x-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+              className={`hidden sm:flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-colors cursor-pointer ${
                 isOffline
-                  ? 'bg-amber-500/20 border-amber-500/40 text-amber-300'
-                  : 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
+                  ? 'bg-amber-950/50 border-amber-600/40 text-amber-300'
+                  : 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800'
               }`}
             >
-              {isOffline ? <WifiOff className="w-3.5 h-3.5" /> : <Wifi className="w-3.5 h-3.5" />}
-              <span>{isOffline ? "Underground Mode" : "Surface Cloud"}</span>
+              {isOffline ? <WifiOff className="w-3.5 h-3.5 text-amber-400" /> : <Wifi className="w-3.5 h-3.5 text-emerald-400" />}
+              <span>{isOffline ? "Underground Link" : "Surface Cloud"}</span>
             </button>
 
-            {/* Mesh Sync Button */}
+            {/* Mesh Sync */}
             <button
               onClick={onOpenMeshSync}
-              title="Sync local records via Bluetooth/Wi-Fi Mesh to Surface Hub"
-              className="relative flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-blue-600/20 border border-blue-500/30 text-blue-300 hover:bg-blue-600/30 text-xs font-bold transition-all cursor-pointer"
+              className="relative flex items-center space-x-1 px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-850 border border-slate-800 text-slate-300 text-xs font-medium cursor-pointer transition-colors"
             >
-              <RefreshCw className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Mesh Sync</span>
+              <RefreshCw className="w-3.5 h-3.5 text-cyan-400" />
+              <span className="hidden lg:inline">Mesh</span>
               {pendingSyncCount > 0 && (
-                <span className="px-1.5 py-0.2 bg-orange-500 text-white rounded-full text-[10px] font-black">
+                <span className="ml-1 px-1.5 py-0.2 bg-amber-500 text-slate-950 rounded text-[10px] font-bold">
                   {pendingSyncCount}
                 </span>
               )}
             </button>
 
-            {/* Budget Phone Viewport Toggle (₹10-12k Android phone optimization preview) */}
+            {/* Viewport Frame */}
             <button
               onClick={() => setIsBudgetPhoneMode(!isBudgetPhoneMode)}
-              title={isBudgetPhoneMode ? "Expand to Full Desktop View" : "Simulate ₹10-12k Android Mobile AR Viewport"}
-              className={`p-2 rounded-xl border transition-colors cursor-pointer ${
+              title={isBudgetPhoneMode ? "Desktop Viewport" : "Budget Mobile Viewport"}
+              className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
                 isBudgetPhoneMode 
-                  ? 'bg-orange-500/20 border-orange-500/40 text-orange-300' 
-                  : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-slate-200'
+                  ? 'bg-amber-500/20 border-amber-500/40 text-amber-400' 
+                  : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200'
               }`}
             >
               {isBudgetPhoneMode ? <Smartphone className="w-4 h-4" /> : <Monitor className="w-4 h-4" />}
@@ -199,8 +195,8 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
 
-        {/* Mobile Tab Bar */}
-        <div className="flex md:hidden items-center justify-around py-2 border-t border-slate-800 text-xs">
+        {/* Mobile Navigation */}
+        <div className="flex md:hidden items-center justify-around py-2 border-t border-slate-800/80 text-xs">
           <button
             onClick={() => setActiveTab('trainee')}
             className={`flex flex-col items-center py-1 ${activeTab === 'trainee' ? 'text-amber-400 font-bold' : 'text-slate-400'}`}
@@ -210,24 +206,24 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
           <button
             onClick={() => setActiveTab('supervisor')}
-            className={`flex flex-col items-center py-1 ${activeTab === 'supervisor' ? 'text-cyan-400 font-bold' : 'text-slate-400'}`}
+            className={`flex flex-col items-center py-1 ${activeTab === 'supervisor' ? 'text-slate-100 font-bold' : 'text-slate-400'}`}
           >
             <Users className="w-4 h-4 mb-0.5" />
-            <span>Supervisor</span>
+            <span>Operations</span>
           </button>
           <button
             onClick={() => setActiveTab('dgms')}
-            className={`flex flex-col items-center py-1 ${activeTab === 'dgms' ? 'text-emerald-400 font-bold' : 'text-slate-400'}`}
+            className={`flex flex-col items-center py-1 ${activeTab === 'dgms' ? 'text-slate-100 font-bold' : 'text-slate-400'}`}
           >
             <FileText className="w-4 h-4 mb-0.5" />
-            <span>DGMS Audit</span>
+            <span>Compliance</span>
           </button>
           <button
             onClick={() => setActiveTab('validator')}
-            className={`flex flex-col items-center py-1 ${activeTab === 'validator' ? 'text-purple-400 font-bold' : 'text-slate-400'}`}
+            className={`flex flex-col items-center py-1 ${activeTab === 'validator' ? 'text-slate-100 font-bold' : 'text-slate-400'}`}
           >
             <FileCheck className="w-4 h-4 mb-0.5" />
-            <span>Verify</span>
+            <span>Registry</span>
           </button>
         </div>
       </div>

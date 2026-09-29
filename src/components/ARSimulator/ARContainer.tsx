@@ -10,8 +10,6 @@ import {
   Eye, 
   Check, 
   ArrowRight,
-  Sparkles,
-  Zap,
   RotateCcw
 } from 'lucide-react';
 import { AssessmentResult, Language, ScenarioId, TraineeProfile } from '../../types';
@@ -46,22 +44,21 @@ export const ARContainer: React.FC<ARContainerProps> = ({
   const timerRef = useRef<number | null>(null);
   const cameraVideoRef = useRef<HTMLVideoElement | null>(null);
 
-  // Scenarios data
   const scenarioStepsData: Record<ScenarioId, { title: string; steps: string[]; actionLabels: string[]; voiceKey: string }> = {
     gas_leak: {
       title: t.scenarioGasTitle,
       steps: [
-        "1. Calibrate & Inspect Multi-Gas Detector (LEL > 2.0% Critical Alert)",
-        "2. De-energize Local Electrical Switches to Eliminate Spark Risk",
-        "3. Engage Auxiliary Ventilation Fan Ducting",
-        "4. Deploy Self-Contained Self-Rescuer (SCSR) Chemical Breathing Pack",
-        "5. Evacuate Following Green AR Ground Laser Waypoints to Intake Airway"
+        "1. Calibrate & Inspect Gas Detector (LEL > 2.0% Threshold)",
+        "2. De-energize Local Electrical Switches to Prevent Sparks",
+        "3. Engage Auxiliary Ventilation Duct Fan",
+        "4. Don Self-Contained Breathing Rescuer (SCSR) Pack",
+        "5. Evacuate Along Illuminated Laser Guidance Trail to Intake Airway"
       ],
       actionLabels: [
-        "Calibrate Gas Detector",
-        "Cut Off Power Switches",
-        "Start Auxiliary Ventilation Fan",
-        "Equip SCSR Oxygen Pack",
+        "Inspect Gas Detector",
+        "Cut Off Electrical Switches",
+        "Start Auxiliary Vent Fan",
+        "Equip SCSR Breathing Pack",
         "Evacuate to Safe Airway Shaft"
       ],
       voiceKey: t.voicePromptGas
@@ -69,17 +66,17 @@ export const ARContainer: React.FC<ARContainerProps> = ({
     loto: {
       title: t.scenarioLotoTitle,
       steps: [
-        "1. Announce Shutdown Warning to Belt Operations Crew",
-        "2. Disengage Main 415V Heavy Circuit Breaker Switch",
-        "3. Apply Safety Padlock & Locking Hasp (Lockout)",
-        "4. Affix DGMS Danger Tag with Trainee Name & Shift Timestamp (Tagout)",
-        "5. Press Test Start Button to Verify Certified Zero-Energy State"
+        "1. Issue Warning to Conveyor Maintenance Crew",
+        "2. Disconnect Primary 415V Power Breaker Lever",
+        "3. Fasten Brass Padlock & Locking Hasp (Lockout)",
+        "4. Affix Warning Danger Tag with Name and Date (Tagout)",
+        "5. Press Test Start Button to Confirm Zero Stored Energy"
       ],
       actionLabels: [
-        "Notify Operations Crew",
+        "Warn Operations Crew",
         "Disconnect 415V Breaker Switch",
         "Attach Safety Padlock (Lockout)",
-        "Hang Danger Warning Tag (Tagout)",
+        "Hang Danger Tag (Tagout)",
         "Test Button: Verify Zero Energy"
       ],
       voiceKey: t.voicePromptLoto
@@ -88,17 +85,17 @@ export const ARContainer: React.FC<ARContainerProps> = ({
       title: t.scenarioFireTitle,
       steps: [
         "1. Pull Extinguisher Safety Pin (P)",
-        "2. Aim Nozzle at the Base of the Electrical Fire (A)",
-        "3. Squeeze Trigger Lever to Discharge CO2/Foam Agent (S)",
-        "4. Sweep Nozzle Side-to-Side Across Entire Fire Perimeter (S)",
-        "5. Evacuate to Designated Surface Assembly Point via AR Exit Route"
+        "2. Aim Discharge Nozzle at Base of Fire (A)",
+        "3. Squeeze Trigger Handle to Release Extinguishing Agent (S)",
+        "4. Sweep Nozzle Side-to-Side Across Flame Perimeter (S)",
+        "5. Evacuate Crew via Emergency Exit Door to Assembly Area"
       ],
       actionLabels: [
-        "P: Pull Extinguisher Safety Pin",
+        "P: Pull Extinguisher Pin",
         "A: Aim Nozzle at Base of Fire",
-        "S: Squeeze Trigger Lever Handle",
+        "S: Squeeze Trigger Handle",
         "S: Sweep Nozzle Across Fire",
-        "Evacuate via Green Route"
+        "Evacuate via Exit Route"
       ],
       voiceKey: t.voicePromptFire
     }
@@ -124,7 +121,6 @@ export const ARContainer: React.FC<ARContainerProps> = ({
     }
   };
 
-  // Start scenario timer and hazard alarm
   useEffect(() => {
     restartScenario(selectedScenario);
 
@@ -134,7 +130,6 @@ export const ARContainer: React.FC<ARContainerProps> = ({
     };
   }, [selectedScenario]);
 
-  // Handle webcam background for AR passthrough
   useEffect(() => {
     let stream: MediaStream | null = null;
     if (cameraPassthrough) {
@@ -172,7 +167,6 @@ export const ARContainer: React.FC<ARContainerProps> = ({
     setCurrentStepIndex(nextIndex);
 
     if (nextIndex >= activeSteps.length) {
-      // Completed all steps
       if (timerRef.current) clearInterval(timerRef.current);
       setHazardTriggered(false);
       soundEffects.playSuccess();
@@ -221,72 +215,64 @@ export const ARContainer: React.FC<ARContainerProps> = ({
   };
 
   return (
-    <div className={`space-y-4 ${isBudgetPhoneMode ? 'max-w-md mx-auto border-8 border-slate-750 rounded-[44px] p-2.5 bg-slate-950 shadow-2xl ring-4 ring-amber-500/20' : 'max-w-7xl mx-auto'}`}>
+    <div className={`space-y-4 ${isBudgetPhoneMode ? 'max-w-md mx-auto border-4 border-slate-700 rounded-3xl p-2 bg-[#090d16] shadow-xl' : 'max-w-5xl mx-auto'}`}>
       
-      {/* Phone Viewport Header Badge */}
-      {isBudgetPhoneMode && (
-        <div className="flex items-center justify-between px-3 py-1 bg-slate-900 rounded-t-2xl text-[10px] text-amber-400 font-mono">
-          <span>₹10–12k Mid-Range Android AR Simulation (60 FPS)</span>
-          <span className="text-emerald-400">Optimized</span>
-        </div>
-      )}
-
-      {/* Scenario Selectors with Friendly Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 bg-slate-900 p-2.5 rounded-2xl border border-slate-800 shadow-xl">
+      {/* Scenario Module Selector Tabs */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 bg-[#111726] p-2 rounded-xl border border-slate-800">
         <button
           onClick={() => restartScenario('gas_leak')}
-          className={`flex items-center space-x-3 p-3 rounded-xl text-left transition-all cursor-pointer ${
+          className={`flex items-center space-x-3 p-3 rounded-lg text-left transition-colors cursor-pointer ${
             selectedScenario === 'gas_leak'
-              ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg ring-1 ring-emerald-400'
-              : 'text-slate-400 hover:text-white hover:bg-slate-800'
+              ? 'bg-slate-800 text-white border border-slate-700 shadow-sm'
+              : 'text-slate-400 hover:text-white hover:bg-slate-850'
           }`}
         >
-          <div className="p-2 rounded-lg bg-emerald-500/20 text-emerald-300">
-            <Wind className="w-5 h-5" />
+          <div className={`p-2 rounded-md ${selectedScenario === 'gas_leak' ? 'bg-amber-500 text-slate-950 font-bold' : 'bg-slate-800 text-slate-400'}`}>
+            <Wind className="w-4 h-4" />
           </div>
           <div>
-            <div className="text-xs font-bold leading-tight">1. Methane Gas Leak</div>
-            <div className="text-[10px] text-slate-300">Underground Mine Drift</div>
+            <div className="text-xs font-semibold leading-tight text-white">1. Methane Gas Protocol</div>
+            <div className="text-[10px] text-slate-400">Mine Drift Incline</div>
           </div>
         </button>
 
         <button
           onClick={() => restartScenario('loto')}
-          className={`flex items-center space-x-3 p-3 rounded-xl text-left transition-all cursor-pointer ${
+          className={`flex items-center space-x-3 p-3 rounded-lg text-left transition-colors cursor-pointer ${
             selectedScenario === 'loto'
-              ? 'bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-lg ring-1 ring-amber-400'
-              : 'text-slate-400 hover:text-white hover:bg-slate-800'
+              ? 'bg-slate-800 text-white border border-slate-700 shadow-sm'
+              : 'text-slate-400 hover:text-white hover:bg-slate-850'
           }`}
         >
-          <div className="p-2 rounded-lg bg-amber-500/20 text-amber-300">
-            <Lock className="w-5 h-5" />
+          <div className={`p-2 rounded-md ${selectedScenario === 'loto' ? 'bg-amber-500 text-slate-950 font-bold' : 'bg-slate-800 text-slate-400'}`}>
+            <Lock className="w-4 h-4" />
           </div>
           <div>
-            <div className="text-xs font-bold leading-tight">2. Machinery LOTO</div>
-            <div className="text-[10px] text-slate-300">Conveyor Belt Lockout</div>
+            <div className="text-xs font-semibold leading-tight text-white">2. Machinery LOTO</div>
+            <div className="text-[10px] text-slate-400">Conveyor Belt Isolation</div>
           </div>
         </button>
 
         <button
           onClick={() => restartScenario('fire_evacuation')}
-          className={`flex items-center space-x-3 p-3 rounded-xl text-left transition-all cursor-pointer ${
+          className={`flex items-center space-x-3 p-3 rounded-lg text-left transition-colors cursor-pointer ${
             selectedScenario === 'fire_evacuation'
-              ? 'bg-gradient-to-r from-red-600 to-rose-600 text-white shadow-lg ring-1 ring-red-400'
-              : 'text-slate-400 hover:text-white hover:bg-slate-800'
+              ? 'bg-slate-800 text-white border border-slate-700 shadow-sm'
+              : 'text-slate-400 hover:text-white hover:bg-slate-850'
           }`}
         >
-          <div className="p-2 rounded-lg bg-red-500/20 text-red-300">
-            <Flame className="w-5 h-5" />
+          <div className={`p-2 rounded-md ${selectedScenario === 'fire_evacuation' ? 'bg-amber-500 text-slate-950 font-bold' : 'bg-slate-800 text-slate-400'}`}>
+            <Flame className="w-4 h-4" />
           </div>
           <div>
-            <div className="text-xs font-bold leading-tight">3. PASS Fire Evac</div>
-            <div className="text-[10px] text-slate-300">Extinguisher &amp; Exit Route</div>
+            <div className="text-xs font-semibold leading-tight text-white">3. PASS Fire Protocol</div>
+            <div className="text-[10px] text-slate-400">Workshop Evacuation</div>
           </div>
         </button>
       </div>
 
-      {/* Main 3D Simulation Stage */}
-      <div className="relative w-full aspect-16/10 sm:aspect-16/9 bg-slate-950 rounded-3xl overflow-hidden border border-slate-800 shadow-2xl">
+      {/* Main 3D Simulation Viewport */}
+      <div className="relative w-full aspect-16/10 sm:aspect-16/9 bg-[#070b12] rounded-2xl overflow-hidden border border-slate-800 shadow-xl">
         
         {/* Real Camera Feed (if enabled) */}
         {cameraPassthrough && (
@@ -299,7 +285,7 @@ export const ARContainer: React.FC<ARContainerProps> = ({
           />
         )}
 
-        {/* 3D WebGL Three.js Layer */}
+        {/* 3D WebGL Layer */}
         <div className="absolute inset-0 z-10 pointer-events-auto">
           <ARScene3D
             scenarioId={selectedScenario}
@@ -311,84 +297,61 @@ export const ARContainer: React.FC<ARContainerProps> = ({
           />
         </div>
 
-        {/* Floating "Next Action" Interactive Callout Overlay right on 3D viewport */}
-        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-20 pointer-events-auto">
+        {/* Floating Action Callout */}
+        <div className="absolute top-14 left-1/2 -translate-x-1/2 z-20 pointer-events-auto">
           <button
             onClick={() => handleStepAction(currentStepIndex)}
-            className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs sm:text-sm shadow-2xl shadow-orange-500/40 border-2 border-amber-300 flex items-center space-x-2 animate-bounce cursor-pointer"
+            className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-md border border-amber-300 flex items-center space-x-2 cursor-pointer transition-colors"
           >
-            <Zap className="w-4 h-4 fill-slate-950" />
-            <span>👉 Next Step: {currentActionLabel}</span>
+            <span>Next Action: {currentActionLabel}</span>
+            <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
 
-        {/* AR Heads-Up Display (HUD) Overlays */}
-        <div className="absolute inset-0 z-20 pointer-events-none p-4 sm:p-6 flex flex-col justify-between">
+        {/* HUD Overlay */}
+        <div className="absolute inset-0 z-20 pointer-events-none p-4 flex flex-col justify-between">
           
-          {/* Top HUD: Stopwatch & Hazard Alert Bar */}
+          {/* Top Status & Stopwatch */}
           <div className="flex items-center justify-between gap-2">
-            {/* Live Hazard Strobe Indicator */}
-            <div className="flex items-center space-x-2 bg-red-950/85 backdrop-blur-md border border-red-500/60 px-3.5 py-2 rounded-2xl shadow-lg">
-              <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />
-              <AlertTriangle className="w-4 h-4 text-red-400" />
-              <div>
-                <span className="text-[10px] font-black text-red-300 block uppercase tracking-wider">
-                  {t.hazardAlert}
-                </span>
-                <span className="text-xs font-bold text-white">
-                  {selectedScenario === 'gas_leak' ? 'CH₄ METHANE HAZARD: 2.8% LEL' : selectedScenario === 'loto' ? '415V MOVING ROLLER CONVEYOR' : 'INDUSTRIAL ELECTRICAL FIRE'}
-                </span>
-              </div>
+            <div className="flex items-center space-x-2 bg-slate-900/90 border border-slate-700/80 px-3 py-1.5 rounded-lg text-xs">
+              <span className="w-2 h-2 rounded-full bg-red-500"></span>
+              <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
+              <span className="font-semibold text-white">
+                {selectedScenario === 'gas_leak' ? 'CH₄ Level: 2.8% LEL' : selectedScenario === 'loto' ? 'Machinery Energized' : 'Electrical Fire Detected'}
+              </span>
             </div>
 
-            {/* Reaction Stopwatch */}
-            <div className="flex items-center space-x-2 bg-slate-900/90 backdrop-blur-md border border-slate-700/80 px-3.5 py-2 rounded-2xl shadow-lg">
-              <Clock className="w-4 h-4 text-amber-400 animate-spin" />
-              <div>
-                <span className="text-[10px] font-semibold text-slate-400 block">
-                  {t.reactionTimer}
-                </span>
-                <span className="font-mono text-xs sm:text-sm font-black text-amber-300">
-                  {(reactionTimerMs / 1000).toFixed(2)}s
-                </span>
-              </div>
+            <div className="flex items-center space-x-2 bg-slate-900/90 border border-slate-700/80 px-3 py-1.5 rounded-lg text-xs">
+              <Clock className="w-3.5 h-3.5 text-slate-400" />
+              <span className="font-mono font-bold text-amber-400">
+                {(reactionTimerMs / 1000).toFixed(1)}s
+              </span>
             </div>
           </div>
 
-          {/* Bottom HUD: Telemetry & View Controls */}
+          {/* Bottom Telemetry & Controls */}
           <div className="flex items-end justify-between gap-3">
-            {/* Multi-Gas telemetry for gas leak */}
             {selectedScenario === 'gas_leak' && (
-              <div className="bg-slate-900/90 backdrop-blur-md border border-slate-700/80 p-3 rounded-2xl text-xs space-y-1.5 shadow-xl pointer-events-auto">
-                <div className="flex items-center space-x-1.5 text-slate-300 font-bold border-b border-slate-800 pb-1">
-                  <Gauge className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>Real-Time Multi-Gas Telemetry</span>
+              <div className="bg-slate-900/95 border border-slate-700/80 p-2.5 rounded-lg text-xs space-y-1 shadow-lg pointer-events-auto">
+                <div className="flex items-center space-x-1.5 text-slate-400 text-[11px] font-semibold border-b border-slate-800 pb-1">
+                  <Gauge className="w-3 h-3 text-cyan-400" />
+                  <span>Gas Sensor Readings</span>
                 </div>
-                <div className="grid grid-cols-3 gap-2 font-mono text-[11px] text-center pt-0.5">
-                  <div className="bg-red-500/20 text-red-300 px-2 py-1 rounded-lg border border-red-500/40">
-                    <span className="block text-[9px] text-slate-400">CH₄</span>
-                    <span className="font-black">2.8%</span>
-                  </div>
-                  <div className="bg-amber-500/20 text-amber-300 px-2 py-1 rounded-lg border border-amber-500/40">
-                    <span className="block text-[9px] text-slate-400">CO</span>
-                    <span className="font-black">45 ppm</span>
-                  </div>
-                  <div className="bg-emerald-500/20 text-emerald-300 px-2 py-1 rounded-lg border border-emerald-500/40">
-                    <span className="block text-[9px] text-slate-400">O₂</span>
-                    <span className="font-black">18.2%</span>
-                  </div>
+                <div className="flex space-x-2 font-mono text-[10px] text-center pt-0.5">
+                  <div className="bg-slate-800 px-2 py-0.5 rounded text-amber-400 font-bold">CH₄ 2.8%</div>
+                  <div className="bg-slate-800 px-2 py-0.5 rounded text-slate-300">CO 45 ppm</div>
+                  <div className="bg-slate-800 px-2 py-0.5 rounded text-emerald-400">O₂ 18.2%</div>
                 </div>
               </div>
             )}
 
-            {/* Viewport Toggles */}
-            <div className="flex items-center space-x-2 pointer-events-auto ml-auto">
+            <div className="flex items-center space-x-1.5 pointer-events-auto ml-auto">
               <button
                 onClick={() => setCameraPassthrough(!cameraPassthrough)}
-                className={`px-3 py-2 rounded-xl border text-xs font-bold flex items-center space-x-1.5 backdrop-blur-md transition-all cursor-pointer ${
+                className={`px-3 py-1.5 rounded-lg border text-xs font-medium flex items-center space-x-1.5 transition-colors cursor-pointer ${
                   cameraPassthrough 
-                    ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-lg' 
-                    : 'bg-slate-900/90 text-slate-300 border-slate-700 hover:text-white'
+                    ? 'bg-amber-500 text-slate-950 border-amber-400' 
+                    : 'bg-slate-900 text-slate-300 border-slate-700 hover:text-white'
                 }`}
               >
                 <Eye className="w-3.5 h-3.5" />
@@ -397,8 +360,8 @@ export const ARContainer: React.FC<ARContainerProps> = ({
 
               <button
                 onClick={() => restartScenario(selectedScenario)}
-                title="Restart this scenario"
-                className="p-2 bg-slate-900/90 hover:bg-slate-800 border border-slate-700 rounded-xl text-slate-300 hover:text-white cursor-pointer"
+                title="Reset simulation"
+                className="p-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-lg text-slate-300 cursor-pointer"
               >
                 <RotateCcw className="w-4 h-4" />
               </button>
@@ -406,7 +369,7 @@ export const ARContainer: React.FC<ARContainerProps> = ({
               {soundEnabled && (
                 <button
                   onClick={() => speakGuidance(activeSteps[currentStepIndex] || "", language)}
-                  className="p-2 bg-slate-900/90 hover:bg-slate-800 border border-slate-700 rounded-xl text-amber-400 cursor-pointer"
+                  className="p-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-lg text-amber-400 cursor-pointer"
                   title="Speak Step Instructions"
                 >
                   <Volume2 className="w-4 h-4" />
@@ -417,25 +380,18 @@ export const ARContainer: React.FC<ARContainerProps> = ({
         </div>
       </div>
 
-      {/* Step Sequence Checklist and Action Trigger */}
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 sm:p-6 shadow-xl space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
-          <div>
-            <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center space-x-2">
-              <Sparkles className="w-4 h-4 text-amber-400" />
-              <span>{t.stepSequence}</span>
-            </h3>
-            <p className="text-xs text-slate-400">
-              Complete each required safety procedure step in exact order:
-            </p>
-          </div>
-          <span className="text-xs text-emerald-400 font-bold bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
+      {/* Step Sequence Checklist */}
+      <div className="bg-[#111726] border border-slate-800 rounded-2xl p-5 shadow-lg space-y-3">
+        <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
+          <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider">
+            {t.stepSequence}
+          </h3>
+          <span className="text-xs font-mono text-slate-400">
             Step {currentStepIndex + 1} of {activeSteps.length}
           </span>
         </div>
 
-        {/* Steps List */}
-        <div className="grid grid-cols-1 gap-2.5">
+        <div className="space-y-2">
           {activeSteps.map((stepText, idx) => {
             const isCompleted = idx < currentStepIndex;
             const isCurrent = idx === currentStepIndex;
@@ -444,31 +400,31 @@ export const ARContainer: React.FC<ARContainerProps> = ({
               <button
                 key={idx}
                 onClick={() => handleStepAction(idx)}
-                className={`w-full text-left p-3.5 rounded-2xl border flex items-center justify-between transition-all cursor-pointer ${
+                className={`w-full text-left p-3 rounded-xl border flex items-center justify-between transition-colors cursor-pointer ${
                   isCompleted
-                    ? 'bg-emerald-950/40 border-emerald-500/50 text-emerald-300'
+                    ? 'bg-slate-900/60 border-emerald-500/30 text-emerald-400'
                     : isCurrent
-                    ? 'bg-gradient-to-r from-amber-500/20 via-orange-500/15 to-transparent border-amber-500 text-white shadow-lg ring-2 ring-amber-400/60'
-                    : 'bg-slate-850/50 border-slate-800 text-slate-500 hover:text-slate-400'
+                    ? 'bg-slate-800 border-amber-500 text-white'
+                    : 'bg-slate-900/30 border-slate-800 text-slate-500 hover:text-slate-400'
                 }`}
               >
-                <div className="flex items-center space-x-3.5">
-                  <div className={`w-7 h-7 rounded-xl flex items-center justify-center text-xs font-black ${
+                <div className="flex items-center space-x-3">
+                  <div className={`w-5 h-5 rounded-md flex items-center justify-center text-[11px] font-mono font-bold ${
                     isCompleted
                       ? 'bg-emerald-500 text-slate-950'
                       : isCurrent
                       ? 'bg-amber-500 text-slate-950'
-                      : 'bg-slate-800 text-slate-500'
+                      : 'bg-slate-800 text-slate-400'
                   }`}>
-                    {isCompleted ? <Check className="w-4 h-4" /> : idx + 1}
+                    {isCompleted ? <Check className="w-3.5 h-3.5" /> : idx + 1}
                   </div>
-                  <span className="text-xs sm:text-sm font-semibold">{stepText}</span>
+                  <span className="text-xs sm:text-sm font-medium">{stepText}</span>
                 </div>
 
                 {isCurrent && (
-                  <span className="shrink-0 ml-2 px-3 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 text-xs font-black rounded-xl flex items-center space-x-1.5 shadow-lg">
-                    <span>Click to Execute</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
+                  <span className="shrink-0 ml-2 px-2.5 py-1 bg-amber-500 text-slate-950 text-xs font-bold rounded-lg flex items-center space-x-1">
+                    <span>Execute</span>
+                    <ArrowRight className="w-3 h-3" />
                   </span>
                 )}
               </button>
