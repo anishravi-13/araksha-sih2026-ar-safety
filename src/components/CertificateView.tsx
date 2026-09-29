@@ -1,16 +1,12 @@
 import React, { useRef } from 'react';
 import { 
-  ShieldCheck, 
   Award, 
   Printer, 
-  Download, 
-  Share2, 
+  X, 
   CheckCircle2, 
-  Calendar, 
-  MapPin, 
-  Hash, 
-  Building2,
-  X
+  Search, 
+  ArrowRight,
+  ShieldCheck 
 } from 'lucide-react';
 import { AssessmentResult } from '../types';
 import { generateQRCodeSVG } from '../utils/certificate';
@@ -18,9 +14,14 @@ import { generateQRCodeSVG } from '../utils/certificate';
 interface CertificateViewProps {
   certificate: AssessmentResult;
   onClose: () => void;
+  onVerifyInPortal?: (certId: string) => void;
 }
 
-export const CertificateView: React.FC<CertificateViewProps> = ({ certificate, onClose }) => {
+export const CertificateView: React.FC<CertificateViewProps> = ({ 
+  certificate, 
+  onClose,
+  onVerifyInPortal 
+}) => {
   const printRef = useRef<HTMLDivElement | null>(null);
 
   const qrSvg = generateQRCodeSVG(`ARAKSHA-CERT:${certificate.certificateId}:${certificate.signatureHash}`, 140);
@@ -36,7 +37,7 @@ export const CertificateView: React.FC<CertificateViewProps> = ({ certificate, o
         {/* Top toolbar */}
         <div className="flex items-center justify-between border-b border-slate-800 pb-3">
           <div className="flex items-center space-x-2">
-            <span className="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400">
+            <span className="p-2 rounded-xl bg-emerald-500/20 text-emerald-400">
               <Award className="w-5 h-5" />
             </span>
             <div>
@@ -46,16 +47,30 @@ export const CertificateView: React.FC<CertificateViewProps> = ({ certificate, o
           </div>
 
           <div className="flex items-center space-x-2">
+            {onVerifyInPortal && (
+              <button
+                onClick={() => {
+                  onClose();
+                  onVerifyInPortal(certificate.certificateId);
+                }}
+                className="px-3.5 py-1.5 bg-purple-600/30 hover:bg-purple-600/50 text-purple-300 text-xs font-bold rounded-xl border border-purple-500/50 flex items-center space-x-1.5 cursor-pointer transition-colors"
+              >
+                <Search className="w-3.5 h-3.5" />
+                <span>Verify in Portal</span>
+              </button>
+            )}
+
             <button
               onClick={handlePrint}
-              className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold rounded-lg border border-slate-700 flex items-center space-x-1.5 cursor-pointer"
+              className="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl border border-slate-700 flex items-center space-x-1.5 cursor-pointer"
             >
               <Printer className="w-3.5 h-3.5" />
-              <span>Print / Save PDF</span>
+              <span>Print / PDF</span>
             </button>
+
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white"
+              className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -67,14 +82,13 @@ export const CertificateView: React.FC<CertificateViewProps> = ({ certificate, o
           ref={printRef}
           className="bg-gradient-to-b from-amber-50 via-white to-amber-50 text-slate-900 p-6 sm:p-10 rounded-2xl border-4 border-amber-600/60 shadow-xl relative overflow-hidden print:p-0 print:border-none print:shadow-none"
         >
-          {/* Subtle Guilloche Border Pattern simulation */}
           <div className="absolute inset-2 border-2 border-amber-500/30 rounded-xl pointer-events-none" />
           <div className="absolute -top-12 -right-12 w-48 h-48 bg-amber-400/10 rounded-full blur-2xl pointer-events-none" />
 
           {/* Certificate Header */}
           <div className="text-center space-y-2 border-b-2 border-amber-700/30 pb-4">
             <div className="flex items-center justify-center space-x-3 mb-1">
-              <div className="w-10 h-10 rounded-full bg-amber-600 flex items-center justify-center text-white font-extrabold shadow">
+              <div className="w-10 h-10 rounded-full bg-amber-600 flex items-center justify-center text-white font-black shadow text-lg">
                 🛡️
               </div>
               <div>
@@ -82,7 +96,7 @@ export const CertificateView: React.FC<CertificateViewProps> = ({ certificate, o
                   ARAKSHA • सुरक्षा
                 </h1>
                 <p className="text-[10px] sm:text-xs font-bold tracking-widest uppercase text-amber-800">
-                  Directorate General of Mines Safety &amp; Ministry of Labour &amp; Employment Standards
+                  Directorate General of Mines Safety &amp; Ministry of Labour Standards
                 </p>
               </div>
             </div>
@@ -98,7 +112,7 @@ export const CertificateView: React.FC<CertificateViewProps> = ({ certificate, o
             </p>
 
             <div className="space-y-1">
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-amber-950 font-serif underline decoration-amber-500 decoration-2 underline-offset-4">
+              <h2 className="text-2xl sm:text-3xl font-black text-amber-950 font-serif underline decoration-amber-500 decoration-2 underline-offset-4">
                 {certificate.traineeName}
               </h2>
               <p className="text-xs font-mono font-semibold text-slate-700">
@@ -121,21 +135,21 @@ export const CertificateView: React.FC<CertificateViewProps> = ({ certificate, o
 
             {/* Performance Badges */}
             <div className="grid grid-cols-3 gap-2 max-w-md mx-auto pt-2 text-center text-xs">
-              <div className="bg-white p-2 rounded-lg border border-amber-200 shadow-sm">
+              <div className="bg-white p-2.5 rounded-xl border border-amber-200 shadow-sm">
                 <span className="block text-[10px] text-slate-500">Retention Score</span>
-                <span className="text-base font-extrabold text-emerald-700 font-mono">
+                <span className="text-base font-black text-emerald-700 font-mono">
                   {certificate.comprehensionScore}%
                 </span>
               </div>
-              <div className="bg-white p-2 rounded-lg border border-amber-200 shadow-sm">
+              <div className="bg-white p-2.5 rounded-xl border border-amber-200 shadow-sm">
                 <span className="block text-[10px] text-slate-500">Response Speed</span>
-                <span className="text-base font-extrabold text-slate-800 font-mono">
+                <span className="text-base font-black text-slate-800 font-mono">
                   {certificate.reactionTimeSeconds}s
                 </span>
               </div>
-              <div className="bg-white p-2 rounded-lg border border-amber-200 shadow-sm">
+              <div className="bg-white p-2.5 rounded-xl border border-amber-200 shadow-sm">
                 <span className="block text-[10px] text-slate-500">Behavioral Risk</span>
-                <span className="text-xs font-black text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded mt-1 inline-block">
+                <span className="text-xs font-black text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-lg mt-1 inline-block">
                   {certificate.riskLevel}
                 </span>
               </div>
@@ -181,10 +195,22 @@ export const CertificateView: React.FC<CertificateViewProps> = ({ certificate, o
           </div>
         </div>
 
-        {/* Footer Note */}
-        <p className="text-center text-[11px] text-slate-400">
-          This verifiable certificate is stored in the tamper-proof local audit trail and syncs across the mine pithead mesh network.
-        </p>
+        {/* Footer Note with Verify Redirect */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-2 pt-1 text-[11px] text-slate-400">
+          <span>Verifiable on DGMS distributed safety register.</span>
+          {onVerifyInPortal && (
+            <button
+              onClick={() => {
+                onClose();
+                onVerifyInPortal(certificate.certificateId);
+              }}
+              className="text-amber-400 hover:text-amber-300 font-bold flex items-center space-x-1 cursor-pointer"
+            >
+              <span>Verify ID {certificate.certificateId} in Audit Portal</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

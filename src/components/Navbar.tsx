@@ -10,7 +10,7 @@ import {
   VolumeX, 
   FileCheck, 
   Users, 
-  HardHat, 
+  Play, 
   FileText
 } from 'lucide-react';
 import { Language } from '../types';
@@ -52,7 +52,10 @@ export const Navbar: React.FC<NavbarProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo & Platform Info */}
-          <div className="flex items-center space-x-3">
+          <div 
+            onClick={() => setActiveTab('trainee')} 
+            className="flex items-center space-x-3 cursor-pointer select-none"
+          >
             <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 via-orange-600 to-emerald-500 shadow-lg shadow-orange-500/20">
               <ShieldCheck className="w-6 h-6 text-white" />
               <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-slate-900" />
@@ -62,63 +65,63 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <span className="font-extrabold text-xl tracking-tight bg-gradient-to-r from-amber-400 via-orange-300 to-emerald-400 bg-clip-text text-transparent">
                   {t.appName}
                 </span>
-                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                  SIH 2026
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                  {t.platformBadge}
                 </span>
               </div>
               <p className="text-[11px] text-slate-400 hidden sm:block truncate max-w-xs">
-                Jharkhand Mining & Industrial Safety AR
+                Industrial Safety &amp; Competency Platform
               </p>
             </div>
           </div>
 
-          {/* Nav Tabs */}
-          <nav className="hidden md:flex items-center space-x-1 bg-slate-800/80 p-1 rounded-xl border border-slate-700/60">
+          {/* Main Navigation Tabs */}
+          <nav className="hidden md:flex items-center space-x-1.5 bg-slate-800/80 p-1.5 rounded-2xl border border-slate-700/60 shadow-inner">
             <button
               onClick={() => setActiveTab('trainee')}
-              className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 activeTab === 'trainee'
                   ? 'bg-gradient-to-r from-orange-500 to-amber-600 text-white shadow-md'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
+                  : 'text-slate-300 hover:text-white hover:bg-slate-750'
               }`}
             >
-              <HardHat className="w-4 h-4" />
+              <Play className="w-4 h-4 text-amber-300" />
               <span>{t.traineeMode}</span>
             </button>
 
             <button
               onClick={() => setActiveTab('supervisor')}
-              className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 activeTab === 'supervisor'
                   ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-md'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
+                  : 'text-slate-300 hover:text-white hover:bg-slate-750'
               }`}
             >
-              <Users className="w-4 h-4" />
+              <Users className="w-4 h-4 text-cyan-300" />
               <span>{t.supervisorConsole}</span>
             </button>
 
             <button
               onClick={() => setActiveTab('dgms')}
-              className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 activeTab === 'dgms'
                   ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
+                  : 'text-slate-300 hover:text-white hover:bg-slate-750'
               }`}
             >
-              <FileText className="w-4 h-4" />
+              <FileText className="w-4 h-4 text-emerald-300" />
               <span>{t.dgmsAudit}</span>
             </button>
 
             <button
               onClick={() => setActiveTab('validator')}
-              className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 activeTab === 'validator'
                   ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
+                  : 'text-slate-300 hover:text-white hover:bg-slate-750'
               }`}
             >
-              <FileCheck className="w-4 h-4" />
+              <FileCheck className="w-4 h-4 text-purple-300" />
               <span>{t.certificateValidator}</span>
             </button>
           </nav>
@@ -131,7 +134,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 aria-label="Language selection"
                 value={language}
                 onChange={(e) => setLanguage(e.target.value as Language)}
-                className="bg-slate-800 text-xs text-amber-300 border border-slate-700 rounded-lg px-2.5 py-1.5 font-medium focus:outline-none focus:ring-1 focus:ring-amber-500 cursor-pointer"
+                className="bg-slate-800 text-xs text-amber-300 border border-slate-700 rounded-xl px-2.5 py-1.5 font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer shadow-sm"
               >
                 <option value="en">English (EN)</option>
                 <option value="hi">हिन्दी (Hindi)</option>
@@ -142,8 +145,8 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Sound Toggle */}
             <button
               onClick={() => setSoundEnabled(!soundEnabled)}
-              title={soundEnabled ? "Mute audio cues & voice" : "Enable voice & sound"}
-              className={`p-1.5 rounded-lg border text-xs transition-colors ${
+              title={soundEnabled ? "Mute Voice Guidance & Sound Effects" : "Enable Voice Guidance & Sound"}
+              className={`p-2 rounded-xl border text-xs transition-colors cursor-pointer ${
                 soundEnabled 
                   ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400' 
                   : 'bg-slate-800 border-slate-700 text-slate-400'
@@ -155,27 +158,27 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Offline Mode Switcher */}
             <button
               onClick={() => setIsOffline(!isOffline)}
-              title={isOffline ? "Currently in Underground Offline Mode" : "Online Mode Connected"}
-              className={`flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-semibold transition-all ${
+              title={isOffline ? "Underground Mode Active (Zero Signal)" : "Cloud Surface Connected"}
+              className={`hidden sm:flex items-center space-x-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
                 isOffline
                   ? 'bg-amber-500/20 border-amber-500/40 text-amber-300'
                   : 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
               }`}
             >
               {isOffline ? <WifiOff className="w-3.5 h-3.5" /> : <Wifi className="w-3.5 h-3.5" />}
-              <span className="hidden lg:inline">{isOffline ? "Underground Offline" : "Surface Cloud"}</span>
+              <span>{isOffline ? "Underground Mode" : "Surface Cloud"}</span>
             </button>
 
             {/* Mesh Sync Button */}
             <button
               onClick={onOpenMeshSync}
-              title="Sync local records via Bluetooth/Wi-Fi Mesh to Supervisor"
-              className="relative flex items-center space-x-1 px-2.5 py-1.5 rounded-lg bg-blue-600/20 border border-blue-500/30 text-blue-300 hover:bg-blue-600/30 text-xs font-medium transition-all"
+              title="Sync local records via Bluetooth/Wi-Fi Mesh to Surface Hub"
+              className="relative flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-blue-600/20 border border-blue-500/30 text-blue-300 hover:bg-blue-600/30 text-xs font-bold transition-all cursor-pointer"
             >
               <RefreshCw className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Mesh</span>
+              <span className="hidden sm:inline">Mesh Sync</span>
               {pendingSyncCount > 0 && (
-                <span className="absolute -top-1 -right-1 px-1.5 py-0.2 bg-orange-500 text-white rounded-full text-[10px] font-bold">
+                <span className="px-1.5 py-0.2 bg-orange-500 text-white rounded-full text-[10px] font-black">
                   {pendingSyncCount}
                 </span>
               )}
@@ -184,8 +187,8 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Budget Phone Viewport Toggle (₹10-12k Android phone optimization preview) */}
             <button
               onClick={() => setIsBudgetPhoneMode(!isBudgetPhoneMode)}
-              title={isBudgetPhoneMode ? "Switch to Wide Desktop View" : "Simulate ₹10-12k Android Phone AR Viewport"}
-              className={`p-1.5 rounded-lg border transition-colors ${
+              title={isBudgetPhoneMode ? "Expand to Full Desktop View" : "Simulate ₹10-12k Android Mobile AR Viewport"}
+              className={`p-2 rounded-xl border transition-colors cursor-pointer ${
                 isBudgetPhoneMode 
                   ? 'bg-orange-500/20 border-orange-500/40 text-orange-300' 
                   : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-slate-200'
@@ -202,8 +205,8 @@ export const Navbar: React.FC<NavbarProps> = ({
             onClick={() => setActiveTab('trainee')}
             className={`flex flex-col items-center py-1 ${activeTab === 'trainee' ? 'text-amber-400 font-bold' : 'text-slate-400'}`}
           >
-            <HardHat className="w-4 h-4 mb-0.5" />
-            <span>Trainee</span>
+            <Play className="w-4 h-4 mb-0.5" />
+            <span>Simulator</span>
           </button>
           <button
             onClick={() => setActiveTab('supervisor')}

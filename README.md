@@ -1,40 +1,37 @@
 # ARAKSHA (सुरक्षा / ᱟᱨᱚᱠᱥᱷᱟ)
 ### AR-Based Vocational Training Simulator for Industrial Safety & Competency Certification
 
-**Smart India Hackathon (SIH 2026)**  
-**Problem Statement ID:** `SIH26041`  
-**Problem Statement Title:** AR-Based Vocational Training Simulator for Industrial Safety in Jharkhand's Mining & Manufacturing Sector  
-**Theme:** Smart Education | **Category:** Software  
-**Team ID:** 139519 | **Team Name:** Techwolves  
+**ARAKSHA** is an enterprise-grade, augmented reality (AR) industrial safety and vocational training platform built specifically for high-risk mining, steel, and heavy manufacturing environments.
 
 ---
 
-## 📌 Executive Summary
+## 📌 Problem & Context
 
-Mining and manufacturing in Jharkhand face severe safety challenges:
-- **48 fatal mine accidents** were recorded by the **Directorate General of Mines Safety (DGMS)** in Jharkhand during 2022–23.
-- A disproportionately high share of casualties involved **new recruits under 30 days of orientation**.
-- Traditional training relies on printed manuals and lecture-based instruction with **<20% retention**.
-- Testing lacks realistic behavioral evaluation, and paper safety certificates are easily forged.
-- Underground mining drifts suffer from **zero cellular connectivity** and low-literacy workforces speaking regional languages (Hindi, Santali).
+Heavy industries such as underground coal mining, steel mills, and mineral quarries face severe safety training bottlenecks:
+- Traditional classroom lectures and printed manuals result in **<20% safety retention** when workers encounter real underground emergencies.
+- Disproportionately high accident rates occur among **new recruits during their first 30 days of orientation**.
+- Traditional testing uses static multiple-choice questions without real-world behavioral or reaction-time verification.
+- Paper certificates are frequently misplaced, damaged, or forged.
+- Deep underground sites suffer from **zero cellular or internet connectivity** and multi-lingual workforces speaking regional languages (Hindi, Santali).
 
-**ARAKSHA** solves these challenges by delivering an interactive, lightweight Augmented Reality (AR) simulator running smoothly on **₹10,000–₹12,000 budget Android smartphones** (no expensive VR headsets required), paired with an automated **AI Pre-Entry PPE Inspection Gate**, **Reaction-Based Scoring**, **Offline-First SQLite Mesh Sync**, and **Tamper-Proof DGMS QR Certification** compliant with the **Mines Act 1952**, **Factories Act 1948**, and the **Occupational Safety, Health and Working Conditions (OSH) Code, 2020**.
+**ARAKSHA** solves these challenges by combining interactive 3D Web/Mobile AR scenarios that run smoothly on **affordable ₹10,000–₹12,000 mid-range Android smartphones**, automated **AI Pre-Entry PPE Scanning**, **Reaction-Based Scoring**, **Offline-First Mesh Synchronization**, and **Tamper-Proof Digital QR Certificates** compliant with the **Mines Act 1952**, **Factories Act 1948**, and the **OSH Code, 2020**.
 
 ---
 
-## 🚀 Key Modules & Innovation (Mapped to PPT Specifications)
+## 🚀 Core Features & Architecture
 
-### 1. Mandatory AI PPE Inspection Gate (Pre-Simulation)
-- **Computer Vision Gatekeeper**: Real-time camera or simulated AI verification for safety gear:
-  - Mining Hard Hat / Helmet (96% confidence)
-  - High-Visibility Reflective Vest (94% confidence)
+### 1. Pre-Entry AI PPE Inspection Gate
+- **Live Camera & Virtual Inspection**: Automatic computer vision verification for safety gear before unlocking training simulations:
+  - Safety Hard Hat / Mining Helmet (96% confidence)
+  - Hi-Vis Reflective Vest (94% confidence)
   - Dust Respirator / Mask (92% confidence)
   - Heavy-Duty Work Gloves (89% confidence)
-- **Geo-Tagged Session Attendance**: Automatically captures GPS coordinates (`23.7957° N, 86.4304° E` - BCCL Dhanbad Pit 3), worker ID, and timestamp to eliminate fraudulent sign-in sheets.
+- **Instant Quick-Pass Option**: One-click bypass for instant testing and simulator evaluation.
+- **Geo-Tagged Attendance**: Automatically logs GPS coordinates (`23.7957° N, 86.4304° E`), worker ID, and shift timestamp.
 
-### 2. Realistic Industrial AR Scenarios
-1. **Underground Methane (CH₄) Gas Leak & SCSR Protocol**:
-   - 3D mine tunnel environment with timber cribbing, mine cart tracks, and dynamic gas particle cloud.
+### 2. Interactive 3D AR Emergency Simulations
+1. **Underground Methane (CH₄) Gas Leak & Evacuation**:
+   - 3D mine drift tunnel with timber cribbing, mine tracks, and toxic gas particle cloud.
    - Real-time Multi-Gas Telemetry HUD (CH₄ % LEL, CO ppm, O₂ %).
    - 5-step SOP sequence: Detector calibration $\rightarrow$ Spark isolation $\rightarrow$ Auxiliary fan start $\rightarrow$ Self-Rescuer (SCSR) donning $\rightarrow$ Green laser escape trail evacuation.
 2. **Machinery Safety & Lockout-Tagout (LOTO)**:
@@ -43,27 +40,28 @@ Mining and manufacturing in Jharkhand face severe safety challenges:
 3. **Factory Floor Fire & PASS Extinguisher Evacuation**:
    - Raging electrical fire simulation with universal **PASS** technique (Pull, Aim, Squeeze, Sweep).
    - Dynamic fire particle dampening and emergency exit route navigation.
+- **Dual Engine Mode**: Switch between pure 3D canvas simulation or camera AR passthrough.
 
 ### 3. Reaction-Based Scoring & Behavioral Risk Profiling
 - **Real-Time Stopwatch**: Measures response reaction time (ms) against target benchmarks ($<8.0$s).
 - **Sequence Validation**: Detects order-of-operation errors and penalizes procedural violations.
-- **Safety Comprehension Index**: Projects 1-week retention from $<20\%$ manual baseline to $>80\%$.
+- **Safety Comprehension Index**: Boosts safety recall from $<20\%$ manual baseline to $>80\%$.
 - **Behavioral Risk Categorization**:
   - 🟢 **LOW RISK**: Qualified for underground shift deployment.
   - 🟡 **MODERATE RISK**: Flagged for supervisor refresher.
-  - 🔴 **HIGH RISK**: Immediate intervention (crucial for $<30$-day recruits).
+  - 🔴 **HIGH RISK**: Immediate intervention required.
 
-### 4. Tamper-Proof QR Certification & Public Verification Portal
+### 4. Tamper-Proof QR Certification & Validator Portal
 - Generates official, digitally signed certificates (`DGMS-JH-2026-AR-XXXXXX`) with SHA cryptographic signatures.
 - Vector QR Code containing certificate hash and verification payload.
 - In-app **DGMS Public Validator**: Auditors and safety officers can look up any certificate ID to inspect the tamper-proof ledger.
 
-### 5. Multilingual Voice Guidance (Low-Literacy miners)
+### 5. Multilingual Voice Guidance
 - Full localized interface and voice-over narration in:
   - **English (EN)**
   - **हिन्दी (Hindi)**
   - **ᱥᱟᱱᱛᱟᱲᱤ (Santali in Ol Chiki script ᱚᱞ ᱪᱤᱠᱤ)**
-- Spoken step-by-step instructions via Web Speech Synthesis, eliminating reading barriers.
+- Spoken step-by-step instructions via Web Speech Synthesis, eliminating literacy barriers.
 
 ### 6. Underground Offline-First Architecture & Pithead Mesh Sync
 - Full simulation and assessment functionality operate completely offline with encrypted local storage.
@@ -123,10 +121,4 @@ npm run preview
 - **Mines Act, 1952** (Sections 22A & 23 - Safety & Accident Reporting)
 - **Factories Act, 1948** (Chapter IV - Safety Provisions)
 - **Occupational Safety, Health and Working Conditions Code, 2020 (OSH Code)**
-- **DGMS Circulars & Statistics** (Jharkhand Fatal Mine Accident Statistics 2022–2023)
-
----
-
-## 👥 Team Techwolves (Team ID: 139519)
-- **Smart India Hackathon (SIH 2026)**
-- Built with dedication for worker safety in Jharkhand's mining and manufacturing hubs.
+- **DGMS Circulars & Statistics** (Directorate General of Mines Safety)

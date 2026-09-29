@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Navbar } from './components/Navbar';
-import { SIHPitchBanner } from './components/SIHPitchBanner';
+import { WorkflowStepper } from './components/WorkflowStepper';
 import { PPEVerification } from './components/PPEVerification';
 import { ARContainer } from './components/ARSimulator/ARContainer';
 import { AssessmentResultModal } from './components/AssessmentResultModal';
@@ -22,16 +22,19 @@ export function App() {
   // Active trainee & PPE gate status
   const [activeTrainee, setActiveTrainee] = useState<TraineeProfile>(mockTraineeProfiles[0]);
   const [ppeVerified, setPpeVerified] = useState(false);
+  const [currentWorkflowStage, setCurrentWorkflowStage] = useState<'ppe' | 'simulator' | 'certificate'>('ppe');
 
   // Assessment & Certificate state
   const [activeAssessmentResult, setActiveAssessmentResult] = useState<AssessmentResult | null>(null);
   const [activeCertificateToView, setActiveCertificateToView] = useState<AssessmentResult | null>(null);
+  const [validatorTargetCertId, setValidatorTargetCertId] = useState<string | undefined>(undefined);
   const [showDGMSExportModal, setShowDGMSExportModal] = useState(false);
   const [showMeshSyncModal, setShowMeshSyncModal] = useState(false);
   const [pendingSyncCount, setPendingSyncCount] = useState(3);
 
   const handlePPEComplete = (_result: PPEScanResult) => {
     setPpeVerified(true);
+    setCurrentWorkflowStage('simulator');
   };
 
   const handleFinishAssessment = (result: AssessmentResult) => {
@@ -39,12 +42,31 @@ export function App() {
     setPendingSyncCount(prev => prev + 1);
   };
 
+  const handleStageSelect = (stage: 'ppe' | 'simulator' | 'certificate') => {
+    setCurrentWorkflowStage(stage);
+    setActiveTab('trainee');
+    if (stage === 'simulator') {
+      setPpeVerified(true);
+    } else if (stage === 'ppe') {
+      setPpeVerified(false);
+    } else if (stage === 'certificate') {
+      if (activeAssessmentResult) {
+        setActiveCertificateToView(activeAssessmentResult);
+      } else {
+        // Look up default recent certificate
+        setActiveTab('validator');
+      }
+    }
+  };
+
+  const handleVerifyInPortal = (certId: string) => {
+    setValidatorTargetCertId(certId);
+    setActiveTab('validator');
+  };
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-amber-500 selection:text-slate-950">
-      {/* SIH Hackathon & Team Metadata Pitch Banner */}
-      <SIHPitchBanner />
-
-      {/* Main App Navigation Bar */}
+      {/* Main Navigation Bar */}
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -58,6 +80,13 @@ export function App() {
         setSoundEnabled={setSoundEnabled}
         onOpenMeshSync={() => setShowMeshSyncModal(true)}
         pendingSyncCount={pendingSyncCount}
+      />
+
+      {/* Guided 3-Step Workflow Stepper */}
+      <WorkflowStepper
+        currentStage={currentWorkflowStage}
+        ppeVerified={ppeVerified}
+        onSelectStage={handleStageSelect}
       />
 
       {/* Main Application Content Area */}
@@ -76,25 +105,33 @@ export function App() {
               />
             ) : (
               <div className="space-y-4">
-                {/* Back to PPE check shortcut */}
-                <div className="flex items-center justify-between text-xs bg-slate-900/80 px-4 py-2.5 rounded-xl border border-slate-800">
-                  <div className="flex items-center space-x-2">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                {/* Back to PPE check / Active status pill */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs bg-slate-900/90 px-4 py-3 rounded-2xl border border-slate-800 shadow-md">
+                  <div className="flex items-center space-x-2.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
                     <span className="text-slate-300">
-                      Trainee: <strong className="text-white">{activeTrainee.name}</strong> ({activeTrainee.workerNumber})
+                      Trainee: <strong className="text-white font-bold">{activeTrainee.name}</strong> ({activeTrainee.workerNumber})
                     </span>
-                    <span className="text-slate-500">•</span>
-                    <span className="text-emerald-400 font-semibold">PPE Verified</span>
+                    <span className="text-slate-600 hidden sm:inline">•</span>
+                    <span className="text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded-lg border border-emerald-500/20">
+                      ✓ Safety Gear Verified
+                    </span>
                   </div>
 
-                  <button
-                    onClick={() => setPpeVerified(false)}
-                    className="text-amber-400 hover:text-amber-300 font-medium underline"
-                  >
-                    Re-verify PPE Camera
-                  </button>
+                  <div className="flex items-center space-x-3">
+                    <button
+                      onClick={() => {
+                        setPpeVerified(false);
+                        setCurrentWorkflowStage('ppe');
+                      }}
+                      className="text-amber-400 hover:text-amber-300 font-bold underline cursor-pointer"
+                    >
+                      Re-scan PPE Gear
+                    </button>
+                  </div>
                 </div>
 
+                {/* 3D AR Simulator Container */}
                 <ARContainer
                   language={language}
                   trainee={activeTrainee}
@@ -126,7 +163,7 @@ export function App() {
             <div className="text-center pt-4">
               <button
                 onClick={() => setShowDGMSExportModal(true)}
-                className="px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-slate-950 font-black text-sm rounded-xl shadow-xl hover:from-emerald-500 hover:to-teal-500 cursor-pointer"
+                className="px-6 py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-slate-950 font-black text-sm rounded-2xl shadow-xl hover:from-emerald-500 hover:to-teal-500 cursor-pointer transition-all transform hover:scale-[1.02]"
               >
                 Launch DGMS Form V Compliance Inspector Document
               </button>
@@ -137,7 +174,13 @@ export function App() {
         {/* Tab 4: Public / Auditor Certificate Validator */}
         {activeTab === 'validator' && (
           <DGMSValidator
+            initialCertId={validatorTargetCertId}
             onSelectCertificate={(cert) => setActiveCertificateToView(cert)}
+            onBackToSimulator={() => {
+              setActiveTab('trainee');
+              setPpeVerified(true);
+              setCurrentWorkflowStage('simulator');
+            }}
           />
         )}
       </main>
@@ -151,6 +194,7 @@ export function App() {
           onViewCertificate={() => {
             setActiveCertificateToView(activeAssessmentResult);
             setActiveAssessmentResult(null);
+            setCurrentWorkflowStage('certificate');
           }}
           onRetry={() => {
             setActiveAssessmentResult(null);
@@ -163,6 +207,7 @@ export function App() {
         <CertificateView
           certificate={activeCertificateToView}
           onClose={() => setActiveCertificateToView(null)}
+          onVerifyInPortal={handleVerifyInPortal}
         />
       )}
 
@@ -187,8 +232,8 @@ export function App() {
       {/* Footer */}
       <footer className="mt-auto border-t border-slate-900 bg-slate-950/80 py-4 text-center text-xs text-slate-500">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span>ARAKSHA © 2026 • Smart India Hackathon Prototype (SIH26041)</span>
-          <span>Designed by Team Techwolves (ID: 139519) • Mining &amp; Manufacturing Safety</span>
+          <span>ARAKSHA © 2026 • Industrial Safety &amp; Competency Certification Platform</span>
+          <span>Complies with Mines Act 1952, Factories Act 1948 &amp; OSH Code 2020</span>
         </div>
       </footer>
     </div>
