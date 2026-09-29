@@ -10,7 +10,9 @@ import {
   Eye, 
   Check, 
   ArrowRight,
-  RotateCcw
+  RotateCcw,
+  Camera,
+  Layers
 } from 'lucide-react';
 import { AssessmentResult, Language, ScenarioId, TraineeProfile } from '../../types';
 import { translations } from '../../utils/translations';
@@ -37,6 +39,7 @@ export const ARContainer: React.FC<ARContainerProps> = ({
   const [selectedScenario, setSelectedScenario] = useState<ScenarioId>('gas_leak');
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [cameraPassthrough, setCameraPassthrough] = useState(false);
+  const [cameraPreset, setCameraPreset] = useState<'overview' | 'focus' | 'evac'>('overview');
   const [reactionTimerMs, setReactionTimerMs] = useState(0);
   const [hazardTriggered, setHazardTriggered] = useState(true);
   const [mistakeCount, setMistakeCount] = useState(0);
@@ -44,9 +47,10 @@ export const ARContainer: React.FC<ARContainerProps> = ({
   const timerRef = useRef<number | null>(null);
   const cameraVideoRef = useRef<HTMLVideoElement | null>(null);
 
-  const scenarioStepsData: Record<ScenarioId, { title: string; steps: string[]; actionLabels: string[]; voiceKey: string }> = {
+  const scenarioStepsData: Record<ScenarioId, { title: string; subtitle: string; steps: string[]; actionLabels: string[]; voiceKey: string }> = {
     gas_leak: {
       title: t.scenarioGasTitle,
+      subtitle: "Underground Incline • Hazard Threshold: CH₄ > 2.0% LEL",
       steps: [
         "1. Calibrate & Inspect Gas Detector (LEL > 2.0% Threshold)",
         "2. De-energize Local Electrical Switches to Prevent Sparks",
@@ -65,6 +69,7 @@ export const ARContainer: React.FC<ARContainerProps> = ({
     },
     loto: {
       title: t.scenarioLotoTitle,
+      subtitle: "Conveyor Isolation Station • Zero-Energy Verification Protocol",
       steps: [
         "1. Issue Warning to Conveyor Maintenance Crew",
         "2. Disconnect Primary 415V Power Breaker Lever",
@@ -83,6 +88,7 @@ export const ARContainer: React.FC<ARContainerProps> = ({
     },
     fire_evacuation: {
       title: t.scenarioFireTitle,
+      subtitle: "Workshop Floor • Electrical Equipment Fire Suppression",
       steps: [
         "1. Pull Extinguisher Safety Pin (P)",
         "2. Aim Discharge Nozzle at Base of Fire (A)",
@@ -107,6 +113,7 @@ export const ARContainer: React.FC<ARContainerProps> = ({
     setReactionTimerMs(0);
     setHazardTriggered(true);
     setMistakeCount(0);
+    setCameraPreset('overview');
 
     if (timerRef.current) clearInterval(timerRef.current);
     const start = Date.now();
@@ -166,6 +173,13 @@ export const ARContainer: React.FC<ARContainerProps> = ({
     const nextIndex = currentStepIndex + 1;
     setCurrentStepIndex(nextIndex);
 
+    // Contextual camera angle switch
+    if (nextIndex === 1 || nextIndex === 2) {
+      setCameraPreset('focus');
+    } else if (nextIndex >= 4) {
+      setCameraPreset('evac');
+    }
+
     if (nextIndex >= activeSteps.length) {
       if (timerRef.current) clearInterval(timerRef.current);
       setHazardTriggered(false);
@@ -215,7 +229,7 @@ export const ARContainer: React.FC<ARContainerProps> = ({
   };
 
   return (
-    <div className={`space-y-4 ${isBudgetPhoneMode ? 'max-w-md mx-auto border-4 border-slate-700 rounded-3xl p-2 bg-[#090d16] shadow-xl' : 'max-w-5xl mx-auto'}`}>
+    <div className={`space-y-4 ${isBudgetPhoneMode ? 'max-w-md mx-auto border-4 border-slate-700 rounded-2xl p-2 bg-[#090d16] shadow-xl' : 'max-w-5xl mx-auto'}`}>
       
       {/* Scenario Module Selector Tabs */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 bg-[#111726] p-2 rounded-xl border border-slate-800">
@@ -292,6 +306,7 @@ export const ARContainer: React.FC<ARContainerProps> = ({
             stepProgress={currentStepIndex}
             hazardActive={hazardTriggered}
             cameraPassthrough={cameraPassthrough}
+            cameraPreset={cameraPreset}
             onObjectClick={() => handleStepAction(currentStepIndex)}
             isExtinguishing={selectedScenario === 'fire_evacuation' && currentStepIndex >= 3}
           />
@@ -301,7 +316,7 @@ export const ARContainer: React.FC<ARContainerProps> = ({
         <div className="absolute top-14 left-1/2 -translate-x-1/2 z-20 pointer-events-auto">
           <button
             onClick={() => handleStepAction(currentStepIndex)}
-            className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-md border border-amber-300 flex items-center space-x-2 cursor-pointer transition-colors"
+            className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-md border border-amber-300 flex items-center space-x-2 cursor-pointer transition-colors"
           >
             <span>Next Action: {currentActionLabel}</span>
             <ArrowRight className="w-3.5 h-3.5" />
@@ -329,15 +344,16 @@ export const ARContainer: React.FC<ARContainerProps> = ({
             </div>
           </div>
 
-          {/* Bottom Telemetry & Controls */}
-          <div className="flex items-end justify-between gap-3">
+          {/* Bottom Telemetry & Camera Angle Controls */}
+          <div className="flex items-end justify-between gap-2 sm:gap-3">
+            {/* Live Sensor Telemetry (for gas leak) */}
             {selectedScenario === 'gas_leak' && (
               <div className="bg-slate-900/95 border border-slate-700/80 p-2.5 rounded-lg text-xs space-y-1 shadow-lg pointer-events-auto">
                 <div className="flex items-center space-x-1.5 text-slate-400 text-[11px] font-semibold border-b border-slate-800 pb-1">
                   <Gauge className="w-3 h-3 text-cyan-400" />
                   <span>Gas Sensor Readings</span>
                 </div>
-                <div className="flex space-x-2 font-mono text-[10px] text-center pt-0.5">
+                <div className="flex space-x-1.5 font-mono text-[10px] text-center pt-0.5">
                   <div className="bg-slate-800 px-2 py-0.5 rounded text-amber-400 font-bold">CH₄ 2.8%</div>
                   <div className="bg-slate-800 px-2 py-0.5 rounded text-slate-300">CO 45 ppm</div>
                   <div className="bg-slate-800 px-2 py-0.5 rounded text-emerald-400">O₂ 18.2%</div>
@@ -345,6 +361,35 @@ export const ARContainer: React.FC<ARContainerProps> = ({
               </div>
             )}
 
+            {/* Camera View Presets */}
+            <div className="flex items-center space-x-1 pointer-events-auto bg-slate-900/95 border border-slate-700/80 p-1 rounded-lg text-xs">
+              <button
+                onClick={() => setCameraPreset('overview')}
+                className={`px-2.5 py-1 rounded text-[11px] font-medium transition-colors cursor-pointer ${
+                  cameraPreset === 'overview' ? 'bg-amber-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Overview
+              </button>
+              <button
+                onClick={() => setCameraPreset('focus')}
+                className={`px-2.5 py-1 rounded text-[11px] font-medium transition-colors cursor-pointer ${
+                  cameraPreset === 'focus' ? 'bg-amber-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Focus
+              </button>
+              <button
+                onClick={() => setCameraPreset('evac')}
+                className={`px-2.5 py-1 rounded text-[11px] font-medium transition-colors cursor-pointer ${
+                  cameraPreset === 'evac' ? 'bg-amber-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Exit Path
+              </button>
+            </div>
+
+            {/* Viewport Toggles */}
             <div className="flex items-center space-x-1.5 pointer-events-auto ml-auto">
               <button
                 onClick={() => setCameraPassthrough(!cameraPassthrough)}
@@ -355,7 +400,7 @@ export const ARContainer: React.FC<ARContainerProps> = ({
                 }`}
               >
                 <Eye className="w-3.5 h-3.5" />
-                <span>{cameraPassthrough ? t.cameraARFeed : t.simulation3DFeed}</span>
+                <span className="hidden sm:inline">{cameraPassthrough ? t.cameraARFeed : t.simulation3DFeed}</span>
               </button>
 
               <button
@@ -383,10 +428,15 @@ export const ARContainer: React.FC<ARContainerProps> = ({
       {/* Step Sequence Checklist */}
       <div className="bg-[#111726] border border-slate-800 rounded-2xl p-5 shadow-lg space-y-3">
         <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
-          <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider">
-            {t.stepSequence}
-          </h3>
-          <span className="text-xs font-mono text-slate-400">
+          <div>
+            <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider">
+              {t.stepSequence}
+            </h3>
+            <p className="text-[11px] text-slate-400 mt-0.5">
+              Execute each mandatory step sequentially to ensure safe field protocol:
+            </p>
+          </div>
+          <span className="text-xs font-mono text-amber-400 font-semibold">
             Step {currentStepIndex + 1} of {activeSteps.length}
           </span>
         </div>

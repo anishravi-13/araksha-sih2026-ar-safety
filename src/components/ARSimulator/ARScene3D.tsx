@@ -7,6 +7,7 @@ interface ARScene3DProps {
   stepProgress: number; // 0 to 5
   hazardActive: boolean;
   cameraPassthrough: boolean;
+  cameraPreset?: 'overview' | 'focus' | 'evac';
   onObjectClick?: (objectName: string) => void;
   isExtinguishing?: boolean;
 }
@@ -16,6 +17,7 @@ export const ARScene3D: React.FC<ARScene3DProps> = ({
   stepProgress,
   hazardActive,
   cameraPassthrough,
+  cameraPreset = 'overview',
   onObjectClick,
   isExtinguishing = false
 }) => {
@@ -29,7 +31,30 @@ export const ARScene3D: React.FC<ARScene3DProps> = ({
   const animFrameId = useRef<number | null>(null);
   const isMouseDownRef = useRef(false);
   const previousMousePositionRef = useRef({ x: 0, y: 0 });
-  const cameraAngleRef = useRef({ x: 0, y: 1.8, z: 4.8 });
+  const cameraTargetPos = useRef(new THREE.Vector3(0, 1.8, 4.8));
+  const cameraLookTarget = useRef(new THREE.Vector3(0, 1.2, 0));
+
+  // Handle camera presets
+  useEffect(() => {
+    if (cameraPreset === 'focus') {
+      if (scenarioId === 'gas_leak') {
+        cameraTargetPos.current.set(-1.0, 1.5, 2.8);
+        cameraLookTarget.current.set(-1.2, 1.2, 1.5);
+      } else if (scenarioId === 'loto') {
+        cameraTargetPos.current.set(-1.8, 1.4, 1.8);
+        cameraLookTarget.current.set(-2.2, 1.3, 0.3);
+      } else {
+        cameraTargetPos.current.set(1.2, 0.9, 2.2);
+        cameraLookTarget.current.set(1.4, 0.5, 0.8);
+      }
+    } else if (cameraPreset === 'evac') {
+      cameraTargetPos.current.set(0, 2.2, -1.0);
+      cameraLookTarget.current.set(0, 1.5, 7.0);
+    } else {
+      cameraTargetPos.current.set(0, 1.8, 4.8);
+      cameraLookTarget.current.set(0, 1.2, 0);
+    }
+  }, [cameraPreset, scenarioId]);
 
   useEffect(() => {
     if (!mountRef.current) return;
@@ -40,26 +65,25 @@ export const ARScene3D: React.FC<ARScene3DProps> = ({
     const scene = new THREE.Scene();
     sceneRef.current = scene;
     if (!cameraPassthrough) {
-      scene.background = new THREE.Color(scenarioId === 'gas_leak' ? 0x090d16 : 0x0f172a);
-      // Atmospheric fog
-      scene.fog = new THREE.FogExp2(scenarioId === 'gas_leak' ? 0x090d16 : 0x0f172a, 0.05);
+      scene.background = new THREE.Color(scenarioId === 'gas_leak' ? 0x070b12 : scenarioId === 'loto' ? 0x090d16 : 0x0d0b12);
+      scene.fog = new THREE.FogExp2(scenarioId === 'gas_leak' ? 0x070b12 : 0x090d16, 0.04);
     } else {
       scene.background = null;
     }
 
     // 2. Camera
-    const camera = new THREE.PerspectiveCamera(55, width / height, 0.1, 100);
+    const camera = new THREE.PerspectiveCamera(54, width / height, 0.1, 100);
     camera.position.set(0, 1.8, 4.8);
     cameraRef.current = camera;
 
-    // 3. Renderer with antialiasing & tone mapping for rich visuals
+    // 3. Renderer with antialiasing & physical tone mapping
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.1;
+    renderer.toneMappingExposure = 1.15;
     mountRef.current.appendChild(renderer.domElement);
     rendererRef.current = renderer;
 
@@ -67,54 +91,52 @@ export const ARScene3D: React.FC<ARScene3DProps> = ({
     const ambientLight = new THREE.AmbientLight(0xffffff, scenarioId === 'gas_leak' ? 0.45 : 0.65);
     scene.add(ambientLight);
 
-    const keyLight = new THREE.DirectionalLight(0xfff3e0, 1.5);
-    keyLight.position.set(4, 8, 5);
-    keyLight.castShadow = true;
-    keyLight.shadow.mapSize.width = 1024;
-    keyLight.shadow.mapSize.height = 1024;
-    scene.add(keyLight);
+    const mainDirectional = new THREE.DirectionalLight(0xffeedd, 1.4);
+    mainDirectional.position.set(4, 8, 5);
+    mainDirectional.castShadow = true;
+    mainDirectional.shadow.mapSize.width = 1024;
+    mainDirectional.shadow.mapSize.height = 1024;
+    scene.add(mainDirectional);
 
-    // Hazard strobe light (red / emergency amber)
-    const strobeLight = new THREE.PointLight(0xff1e00, 0, 16);
+    // Hazard strobe beacon
+    const strobeLight = new THREE.PointLight(scenarioId === 'gas_leak' ? 0x10b981 : 0xff2200, 0, 18);
     strobeLight.position.set(0, 3.2, 0);
     scene.add(strobeLight);
 
     // 5. Floor & Runway Grid
-    const floorGeo = new THREE.PlaneGeometry(20, 24);
+    const floorGeo = new THREE.PlaneGeometry(22, 26);
     const floorMat = new THREE.MeshStandardMaterial({ 
-      color: scenarioId === 'gas_leak' ? 0x111622 : 0x1e293b, 
-      roughness: 0.75,
-      metalness: 0.2
+      color: 0x111726, 
+      roughness: 0.8,
+      metalness: 0.15
     });
     const floor = new THREE.Mesh(floorGeo, floorMat);
     floor.rotation.x = -Math.PI / 2;
     floor.receiveShadow = true;
     scene.add(floor);
 
-    // Grid lines for AR spatial anchoring
-    const grid = new THREE.GridHelper(20, 20, 0xf59e0b, 0x334155);
+    // Subtle safety grid
+    const grid = new THREE.GridHelper(22, 22, 0xf59e0b, 0x1e293b);
     grid.position.y = 0.01;
     scene.add(grid);
 
     dynamicMeshesRef.current = {};
 
-    // 6. BUILD VIBRANT 3D OBJECTS PER SCENARIO
+    // 6. BUILD SCENARIO 3D MODELS
     if (scenarioId === 'gas_leak') {
       // Underground Mine Drift Environment
-      // Timber Cribbing & Support Beams
       const timberMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.9 });
       for (let z = -8; z <= 4; z += 3) {
-        // Left Column
         const leftPost = new THREE.Mesh(new THREE.BoxGeometry(0.35, 3.2, 0.35), timberMat);
         leftPost.position.set(-2.8, 1.6, z);
         leftPost.castShadow = true;
         scene.add(leftPost);
-        // Right Column
+
         const rightPost = new THREE.Mesh(new THREE.BoxGeometry(0.35, 3.2, 0.35), timberMat);
         rightPost.position.set(2.8, 1.6, z);
         rightPost.castShadow = true;
         scene.add(rightPost);
-        // Top Crossbeam
+
         const topBeam = new THREE.Mesh(new THREE.BoxGeometry(5.9, 0.35, 0.35), timberMat);
         topBeam.position.set(0, 3.1, z);
         topBeam.castShadow = true;
@@ -122,7 +144,7 @@ export const ARScene3D: React.FC<ARScene3DProps> = ({
       }
 
       // Mine Tracks
-      const trackMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.8, roughness: 0.2 });
+      const trackMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.85, roughness: 0.2 });
       const rail1 = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 20), trackMat);
       rail1.position.set(-0.7, 0.05, 0);
       scene.add(rail1);
@@ -130,7 +152,6 @@ export const ARScene3D: React.FC<ARScene3DProps> = ({
       rail2.position.set(0.7, 0.05, 0);
       scene.add(rail2);
 
-      // Sleepers
       const sleeperMat = new THREE.MeshStandardMaterial({ color: 0x451a03 });
       for (let z = -9; z <= 6; z += 1.2) {
         const sleeper = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.06, 0.2), sleeperMat);
@@ -138,8 +159,8 @@ export const ARScene3D: React.FC<ARScene3DProps> = ({
         scene.add(sleeper);
       }
 
-      // Gas Particle Cloud (Methane CH4 / Toxic vapour)
-      const particleCount = 350;
+      // Gas Particle Cloud
+      const particleCount = 380;
       const particleGeo = new THREE.BufferGeometry();
       const posArray = new Float32Array(particleCount * 3);
       for (let i = 0; i < particleCount * 3; i += 3) {
@@ -149,7 +170,7 @@ export const ARScene3D: React.FC<ARScene3DProps> = ({
       }
       particleGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
       const particleMat = new THREE.PointsMaterial({
-        size: 0.22,
+        size: 0.24,
         color: 0x10b981,
         transparent: true,
         opacity: 0.75,
@@ -159,7 +180,7 @@ export const ARScene3D: React.FC<ARScene3DProps> = ({
       scene.add(gasParticles);
       particleGroupRef.current = gasParticles;
 
-      // Auxiliary Ventilation Duct Tube & Fan
+      // Auxiliary Ventilation Duct Tube
       const ductMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.3, roughness: 0.4 });
       const ventDuct = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 14, 24), ductMat);
       ventDuct.rotation.x = Math.PI / 2;
@@ -168,11 +189,11 @@ export const ARScene3D: React.FC<ARScene3DProps> = ({
       scene.add(ventDuct);
       dynamicMeshesRef.current['ventDuct'] = ventDuct;
 
-      // Ventilation Fan Blades inside mouth
+      // Fan Blades
       const fanGroup = new THREE.Group();
       const bladeMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.8 });
       for (let b = 0; b < 4; b++) {
-        const blade = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.35, 0.02), bladeMat);
+        const blade = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.36, 0.02), bladeMat);
         blade.rotation.z = (b * Math.PI) / 2;
         fanGroup.add(blade);
       }
@@ -180,7 +201,7 @@ export const ARScene3D: React.FC<ARScene3DProps> = ({
       scene.add(fanGroup);
       dynamicMeshesRef.current['fanBlades'] = fanGroup;
 
-      // Multi-Gas Detector handheld device placed on inspection stand
+      // Gas Detector Station
       const detectorGroup = new THREE.Group();
       const detBody = new THREE.Mesh(
         new THREE.BoxGeometry(0.35, 0.6, 0.15),
@@ -198,7 +219,7 @@ export const ARScene3D: React.FC<ARScene3DProps> = ({
       scene.add(detectorGroup);
       dynamicMeshesRef.current['detector'] = detectorGroup;
 
-      // Glowing Green Laser Escape Route Arrows on Ground
+      // Illuminated Green Floor Arrows
       const arrowGroup = new THREE.Group();
       const arrowMat = new THREE.MeshBasicMaterial({ color: 0x10b981 });
       for (let z = 3; z >= -7; z -= 2) {
@@ -211,18 +232,17 @@ export const ARScene3D: React.FC<ARScene3DProps> = ({
       dynamicMeshesRef.current['arrows'] = arrowGroup;
 
     } else if (scenarioId === 'loto') {
-      // Industrial Machinery & LOTO Station
-      // Heavy Conveyor Drive & Machine Housing
-      const machineMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, metalness: 0.4, roughness: 0.3 });
+      // Machinery LOTO Environment
+      const machineMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, metalness: 0.45, roughness: 0.3 });
       const machineBody = new THREE.Mesh(new THREE.BoxGeometry(3.6, 1.3, 2.2), machineMat);
       machineBody.position.set(0, 0.65, -0.8);
       machineBody.castShadow = true;
       machineBody.receiveShadow = true;
       scene.add(machineBody);
 
-      // Rotating Conveyor Belt Rollers
+      // Rollers
       const rollerGroup = new THREE.Group();
-      const rollerMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.8, roughness: 0.2 });
+      const rollerMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.85, roughness: 0.2 });
       for (let i = -1.4; i <= 1.4; i += 0.55) {
         const roller = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 2.0, 18), rollerMat);
         roller.rotation.z = Math.PI / 2;
@@ -232,7 +252,7 @@ export const ARScene3D: React.FC<ARScene3DProps> = ({
       scene.add(rollerGroup);
       dynamicMeshesRef.current['rollers'] = rollerGroup;
 
-      // 415V Heavy Duty Control Cabinet
+      // Control Panel
       const panelMat = new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.35, metalness: 0.3 });
       const panel = new THREE.Mesh(new THREE.BoxGeometry(1.3, 2.3, 0.45), panelMat);
       panel.position.set(-2.2, 1.25, 0.2);
@@ -241,7 +261,7 @@ export const ARScene3D: React.FC<ARScene3DProps> = ({
       scene.add(panel);
       dynamicMeshesRef.current['panel'] = panel;
 
-      // Main Breaker Switch Lever
+      // Breaker Switch Handle
       const handleMat = new THREE.MeshStandardMaterial({ color: 0xdc2626, metalness: 0.5 });
       const leverHandle = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.4, 0.18), handleMat);
       leverHandle.position.set(-2.2, 1.55, 0.45);
@@ -249,7 +269,7 @@ export const ARScene3D: React.FC<ARScene3DProps> = ({
       scene.add(leverHandle);
       dynamicMeshesRef.current['switchHandle'] = leverHandle;
 
-      // Padlock & Locking Hasp (Golden Brass)
+      // Golden Brass Padlock
       const lockMat = new THREE.MeshStandardMaterial({ color: 0xeab308, metalness: 0.9, roughness: 0.15 });
       const lock = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.24, 0.1), lockMat);
       lock.position.set(-2.2, 1.35, 0.5);
@@ -258,7 +278,7 @@ export const ARScene3D: React.FC<ARScene3DProps> = ({
       scene.add(lock);
       dynamicMeshesRef.current['padlock'] = lock;
 
-      // DGMS Warning Danger Tag
+      // Danger Tag
       const tagMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8 });
       const dangerTag = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.32, 0.02), tagMat);
       dangerTag.position.set(-2.2, 1.15, 0.52);
@@ -267,26 +287,16 @@ export const ARScene3D: React.FC<ARScene3DProps> = ({
       scene.add(dangerTag);
       dynamicMeshesRef.current['dangerTag'] = dangerTag;
 
-      // Zero-Energy Test Push Button
-      const buttonMat = new THREE.MeshStandardMaterial({ color: 0x10b981 });
-      const testBtn = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.06, 16), buttonMat);
-      testBtn.rotation.x = Math.PI / 2;
-      testBtn.position.set(-2.2, 0.85, 0.45);
-      testBtn.name = 'test_btn';
-      scene.add(testBtn);
-      dynamicMeshesRef.current['testBtn'] = testBtn;
-
     } else if (scenarioId === 'fire_evacuation') {
-      // Factory Floor Electrical Fire
-      // Industrial Machinery Unit
+      // Fire Evacuation Environment
       const machineMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.6 });
       const machine = new THREE.Mesh(new THREE.BoxGeometry(2.4, 1.6, 1.8), machineMat);
       machine.position.set(0, 0.8, -1.8);
       machine.castShadow = true;
       scene.add(machine);
 
-      // Fire Particles Simulation
-      const fireCount = 400;
+      // Fire Particles
+      const fireCount = 420;
       const fireGeo = new THREE.BufferGeometry();
       const firePos = new Float32Array(fireCount * 3);
       for (let i = 0; i < fireCount * 3; i += 3) {
@@ -296,7 +306,7 @@ export const ARScene3D: React.FC<ARScene3DProps> = ({
       }
       fireGeo.setAttribute('position', new THREE.BufferAttribute(firePos, 3));
       const fireMat = new THREE.PointsMaterial({
-        size: 0.3,
+        size: 0.32,
         color: 0xff3b00,
         transparent: true,
         opacity: stepProgress >= 4 ? 0.05 : stepProgress >= 3 ? 0.3 : 0.85,
@@ -306,32 +316,24 @@ export const ARScene3D: React.FC<ARScene3DProps> = ({
       scene.add(fireParticles);
       particleGroupRef.current = fireParticles;
 
-      // 3D Fire Extinguisher (Universal PASS Tool)
+      // 3D Fire Extinguisher
       const extGroup = new THREE.Group();
       const cylMat = new THREE.MeshStandardMaterial({ color: 0xdc2626, roughness: 0.25, metalness: 0.3 });
       const cylinder = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.85, 24), cylMat);
       cylinder.castShadow = true;
       extGroup.add(cylinder);
 
-      // Handle & Nozzle
       const handleMat = new THREE.MeshStandardMaterial({ color: 0x111827, metalness: 0.7 });
       const extHandle = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.18, 0.15), handleMat);
       extHandle.position.set(0, 0.5, 0);
       extGroup.add(extHandle);
-
-      // Extinguisher Hose
-      const hoseMat = new THREE.MeshStandardMaterial({ color: 0x1f2937, roughness: 0.8 });
-      const hose = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.6, 12), hoseMat);
-      hose.position.set(0.15, 0.2, 0.15);
-      hose.rotation.z = Math.PI / 6;
-      extGroup.add(hose);
 
       extGroup.position.set(1.4, 0.45, 0.8);
       extGroup.name = 'extinguisher';
       scene.add(extGroup);
       dynamicMeshesRef.current['extinguisher'] = extGroup;
 
-      // White Extinguisher Foam Spray Stream
+      // Extinguisher Foam Spray Stream
       const foamCount = 200;
       const foamGeo = new THREE.BufferGeometry();
       const foamPos = new Float32Array(foamCount * 3);
@@ -345,30 +347,23 @@ export const ARScene3D: React.FC<ARScene3DProps> = ({
         size: 0.2,
         color: 0xffffff,
         transparent: true,
-        opacity: stepProgress >= 3 ? 0.7 : 0,
+        opacity: stepProgress >= 3 ? 0.75 : 0,
         blending: THREE.AdditiveBlending
       });
       const foamParticles = new THREE.Points(foamGeo, foamMat);
       scene.add(foamParticles);
       foamParticlesRef.current = foamParticles;
 
-      // Emergency Exit Doorway in the Distance
+      // Emergency Exit Doorway
       const exitDoor = new THREE.Mesh(
         new THREE.BoxGeometry(1.8, 3.0, 0.1),
         new THREE.MeshStandardMaterial({ color: 0x10b981, roughness: 0.4 })
       );
       exitDoor.position.set(0, 1.5, 7.5);
       scene.add(exitDoor);
-
-      const exitSign = new THREE.Mesh(
-        new THREE.BoxGeometry(0.8, 0.3, 0.05),
-        new THREE.MeshBasicMaterial({ color: 0x4ade80 })
-      );
-      exitSign.position.set(0, 3.2, 7.4);
-      scene.add(exitSign);
     }
 
-    // 7. ORBIT / PAN INTERACTION (Mouse drag / touch)
+    // 7. Orbit / Drag controls
     const handleMouseDown = (e: MouseEvent) => {
       isMouseDownRef.current = true;
       previousMousePositionRef.current = { x: e.clientX, y: e.clientY };
@@ -379,12 +374,8 @@ export const ARScene3D: React.FC<ARScene3DProps> = ({
       const deltaX = e.clientX - previousMousePositionRef.current.x;
       const deltaY = e.clientY - previousMousePositionRef.current.y;
 
-      cameraAngleRef.current.x = Math.max(-2, Math.min(2, cameraAngleRef.current.x - deltaX * 0.005));
-      cameraAngleRef.current.y = Math.max(1.0, Math.min(3.0, cameraAngleRef.current.y + deltaY * 0.005));
-
-      cameraRef.current.position.x = cameraAngleRef.current.x;
-      cameraRef.current.position.y = cameraAngleRef.current.y;
-      cameraRef.current.lookAt(0, 1.2, 0);
+      cameraTargetPos.current.x = Math.max(-2.5, Math.min(2.5, cameraTargetPos.current.x - deltaX * 0.005));
+      cameraTargetPos.current.y = Math.max(0.8, Math.min(3.2, cameraTargetPos.current.y + deltaY * 0.005));
 
       previousMousePositionRef.current = { x: e.clientX, y: e.clientY };
     };
@@ -415,26 +406,32 @@ export const ARScene3D: React.FC<ARScene3DProps> = ({
     window.addEventListener('mouseup', handleMouseUp);
     mountRef.current.addEventListener('click', handleClick);
 
-    // 8. ANIMATION LOOP
+    // 8. Animation loop
     const clock = new THREE.Clock();
     const animate = () => {
       animFrameId.current = requestAnimationFrame(animate);
       const elapsedTime = clock.getElapsedTime();
 
-      // Hazard strobe animation
+      // Smooth camera interpolation towards target
+      if (cameraRef.current) {
+        cameraRef.current.position.lerp(cameraTargetPos.current, 0.06);
+        cameraRef.current.lookAt(cameraLookTarget.current);
+      }
+
+      // Hazard strobe beacon
       if (hazardActive && strobeLight) {
-        strobeLight.intensity = Math.sin(elapsedTime * 9) > 0 ? 3.5 : 0.2;
+        strobeLight.intensity = Math.sin(elapsedTime * 8) > 0 ? 3.0 : 0.2;
       } else if (strobeLight) {
         strobeLight.intensity = 0;
       }
 
-      // Fan rotation (Gas leak scenario)
+      // Fan rotation
       if (dynamicMeshesRef.current['fanBlades']) {
         const speed = stepProgress >= 3 ? 15 : 1;
         dynamicMeshesRef.current['fanBlades'].rotation.z += speed * 0.02;
       }
 
-      // Conveyor roller rotation (LOTO scenario - stops when locked out)
+      // Rollers rotation
       if (dynamicMeshesRef.current['rollers']) {
         if (stepProgress < 2) {
           dynamicMeshesRef.current['rollers'].children.forEach(r => {
@@ -443,7 +440,7 @@ export const ARScene3D: React.FC<ARScene3DProps> = ({
         }
       }
 
-      // Gas particles movement
+      // Particles
       if (particleGroupRef.current) {
         const positions = particleGroupRef.current.geometry.attributes.position.array as Float32Array;
         for (let i = 1; i < positions.length; i += 3) {
@@ -455,7 +452,7 @@ export const ARScene3D: React.FC<ARScene3DProps> = ({
         particleGroupRef.current.geometry.attributes.position.needsUpdate = true;
       }
 
-      // Foam spray animation
+      // Foam spray
       if (foamParticlesRef.current && stepProgress >= 3) {
         const positions = foamParticlesRef.current.geometry.attributes.position.array as Float32Array;
         for (let i = 2; i < positions.length; i += 3) {
@@ -472,7 +469,6 @@ export const ARScene3D: React.FC<ARScene3DProps> = ({
 
     animate();
 
-    // 9. Resize Handling
     const handleResize = () => {
       if (!mountRef.current || !renderer || !camera) return;
       const newW = mountRef.current.clientWidth;
@@ -500,7 +496,6 @@ export const ARScene3D: React.FC<ARScene3DProps> = ({
     };
   }, [scenarioId, cameraPassthrough]);
 
-  // Update dynamic elements when stepProgress updates
   useEffect(() => {
     if (dynamicMeshesRef.current['switchHandle']) {
       dynamicMeshesRef.current['switchHandle'].rotation.z = stepProgress >= 2 ? Math.PI / 2 : 0;
@@ -518,14 +513,14 @@ export const ARScene3D: React.FC<ARScene3DProps> = ({
   }, [stepProgress, isExtinguishing]);
 
   return (
-    <div className="relative w-full h-full min-h-[460px] bg-slate-950 rounded-2xl overflow-hidden shadow-2xl select-none">
+    <div className="relative w-full h-full min-h-[460px] bg-[#070b12] rounded-xl overflow-hidden shadow-inner select-none">
       <div ref={mountRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
       
-      {/* Helpful drag-to-look hint */}
-      <div className="absolute bottom-2 left-2 pointer-events-none px-2.5 py-1 bg-slate-900/80 backdrop-blur-md rounded-lg text-[10px] text-slate-400 border border-slate-700/60 flex items-center space-x-1.5">
-        <span>🔄 Drag to rotate view</span>
+      {/* Helpful view hint */}
+      <div className="absolute bottom-2.5 left-3 pointer-events-none px-2.5 py-1 bg-slate-900/85 backdrop-blur-sm rounded-md text-[10px] text-slate-400 border border-slate-800 flex items-center space-x-2">
+        <span>🔄 Drag to look around</span>
         <span>•</span>
-        <span className="text-amber-400 font-semibold">Click elements to interact</span>
+        <span className="text-amber-400 font-medium">Click 3D elements to interact</span>
       </div>
     </div>
   );
